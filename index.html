@@ -3,595 +3,507 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartes d'Équipe - Design Unique</title>
-    <!-- FontAwesome + Librairies PDF/Canvas/QR -->
+    <title>Créer ma carte - Cartes d'Équipe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
-        body {
-            background: linear-gradient(135deg, rgba(106,17,203,0.9) 0%, rgba(37,117,252,0.9) 100%);
-            color: #333;
-            padding: 20px;
-            min-height: 100vh;
-            overflow-x: hidden;
+        body {margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background: #ece9f7;}
+        .sidebar {
+            position:fixed; left:0; top:0; width:220px; height:100vh; background:#2c3e50; color:white; display:flex; flex-direction:column; align-items:center; padding:30px 0;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.07); z-index:10;
         }
-        .container {max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;}
-        header {text-align: center; margin-bottom: 20px; padding: 20px; color: white;}
-        h1 {font-size: 2.8rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);}
-        .description {font-size: 1.2rem; max-width: 800px; margin: 0 auto; color: rgba(255,255,255,0.9);}
-        .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
-            border-radius: 20px; padding: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 1000;
+        .sidebar h2 {margin-bottom:30px; font-size:1.4rem; letter-spacing:2px;}
+        .sidebar a {
+            color:white; text-decoration:none; font-size:1.1rem; margin:12px 0; padding:10px 25px; border-radius:8px; display:flex; align-items:center; gap:12px; transition:background .2s;
         }
-        .nav-icon {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 80px; height: 70px; border-radius: 15px; color: white; text-decoration: none;
-            transition: all 0.3s ease; margin: 0 5px;
-        }
-        .nav-icon i {font-size: 1.5rem; margin-bottom: 5px;}
-        .nav-icon span {font-size: 0.8rem; font-weight: 500;}
-        .nav-icon:hover, .nav-icon.active {background: rgba(255,255,255,0.2); transform: translateY(-5px);}
-        .main-content {
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 24px;
-            padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.18); margin-bottom: 100px;
-        }
+        .sidebar a.active, .sidebar a:hover {background:#2980b9;}
+        .main-content {margin-left:220px; padding:50px 40px;}
+        /* --- Le CSS de la carte et du formulaire reprend tes styles précédents --- */
         .tab-content {display: none;}
-        .tab-content.active {display: block; animation: fadeIn 0.5s;}
-        @keyframes fadeIn {from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);}}
+        .tab-content.active {display: block;}
         .app-container {display: flex; flex-wrap: wrap; gap: 30px;}
         .customization-panel {
-            flex: 1; min-width: 300px; background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px); border-radius: 20px; padding: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.18);
+            flex: 1; min-width: 300px; background: rgba(255,255,255,0.85); border-radius: 20px; padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.10); border: 1px solid #eee;
         }
         .preview-area {flex:2; min-width:300px; display:flex; flex-direction:column; align-items:center; gap:20px;}
         .form-group {margin-bottom:20px;}
-        label {display:block; margin-bottom:8px; font-weight:600; color:white;}
+        label {display:block; margin-bottom:8px; font-weight:600; color:#2c3e50;}
         input, textarea, select {
-            width:100%; padding:12px 15px; border:2px solid rgba(255,255,255,0.3); border-radius:8px;
-            font-size:1rem; transition:border-color 0.3s; background:rgba(255,255,255,0.1); color:white;
+            width:100%; padding:12px 15px; border:2px solid #ddd; border-radius:8px;
+            font-size:1rem; background:#fafbfc; color:#222; transition: border-color .2s;
         }
-        input:focus, textarea:focus, select:focus {border-color:#3498db; outline:none; background:rgba(255,255,255,0.15);}
-        input::placeholder, textarea::placeholder {color:rgba(255,255,255,0.7);}
+        input:focus, textarea:focus, select:focus {border-color:#3498db; outline:none;}
+        input::placeholder, textarea::placeholder {color:#bbb;}
         textarea {min-height:100px; resize:vertical;}
-        .color-picker {display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+        .color-picker {display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:15px;}
         .color-option {
-            width:40px; height:40px; border-radius:50%; cursor:pointer; transition:transform 0.3s;
-            border:3px solid rgba(255,255,255,0.5); box-shadow:0 0 10px rgba(0,0,0,0.2);
+            width:40px; height:40px; border-radius:50%; cursor:pointer; border:3px solid #eee; box-shadow:0 0 4px rgba(0,0,0,0.05); transition:transform 0.2s, border-color 0.2s;
         }
-        .color-option:hover {transform:scale(1.1);}
-        .color-option.active {transform:scale(1.15); border:3px solid white;}
+        .color-option.active {transform:scale(1.15); border:3px solid #3498db;}
         .btn {
-            background:rgba(52,152,219,0.8); color:white; border:none; padding:12px 25px;
-            border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.3s;
-            display:inline-block; margin-top:10px; margin-right:10px; backdrop-filter:blur(5px);
+            background:rgba(52,152,219,0.9); color:white; border:none; padding:12px 25px; border-radius:8px;
+            font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.3s; display:inline-block; margin-top:10px; margin-right:10px;
         }
-        .btn:hover {background:rgba(41,128,185,0.9); transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,0,0,0.2);}
-        .btn-download {background:rgba(46,204,113,0.8);}
-        .btn-download:hover {background:rgba(39,174,96,0.9);}
-        .btn-library {background:rgba(155,89,182,0.8);}
-        .btn-library:hover {background:rgba(142,68,173,0.9);}
+        .btn:hover {background:rgba(41,128,185,0.93);}
         .card {
-            background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); border-radius:20px; overflow:hidden;
-            width:320px; box-shadow:0 15px 30px rgba(0,0,0,0.2); transition:transform 0.3s ease;
-            border:1px solid rgba(255,255,255,0.18);
+            background:rgba(255,255,255,0.98); border-radius:20px; overflow:hidden; width:320px; box-shadow:0 15px 30px rgba(0,0,0,0.13); border:1px solid #eee;
         }
-        .card:hover {transform:translateY(-5px); box-shadow:0 20px 40px rgba(0,0,0,0.3);}
         .card-header {position:relative; height:180px; overflow:hidden;}
         .card-bg {width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
         .card-avatar {
-            width:120px; height:120px; border-radius:50%; border:4px solid rgba(255,255,255,0.5);
-            object-fit:cover; box-shadow:0 5px 15px rgba(0,0,0,0.2);
+            width:120px; height:120px; border-radius:50%; border:4px solid #fff;
+            object-fit:cover; box-shadow:0 5px 15px rgba(0,0,0,0.13); background:#eee;
         }
         .card-body {padding:25px; text-align:center;}
-        .card-name {font-size:1.6rem; font-weight:700; margin-bottom:5px; color:white;}
-        .card-role {color:#ff7979; font-weight:600; margin-bottom:15px; text-shadow:1px 1px 2px rgba(0,0,0,0.3);}
-        .card-desc {color:rgba(255,255,255,0.9); line-height:1.5; margin-bottom:20px;}
+        .card-name {font-size:1.6rem; font-weight:700; margin-bottom:5px; color:#2c3e50;}
+        .card-role {color:#e67e22; font-weight:600; margin-bottom:15px;}
+        .card-desc {color:#555; line-height:1.5; margin-bottom:20px;}
         .card-social {
-            display:flex; justify-content:center; gap:15px; margin-top:15px;
-            background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); padding:15px; border-radius:15px;
-            border:1px solid rgba(255,255,255,0.1);
+            display:flex; justify-content:center; gap:15px; margin-top:15px; background:rgba(52,152,219,0.05); padding:15px; border-radius:15px;
         }
-        .social-icon {
-            width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;
-            font-size:18px; transition:transform 0.3s ease; text-decoration:none; box-shadow:0 5px 15px rgba(0,0,0,0.2);
-        }
-        .social-icon:hover {transform:scale(1.1);}
-        .whatsapp {background-color:#25D366;}
-        .email {background-color:#D44638;}
-        .youtube {background-color:#FF0000;}
-        .facebook {background-color:#1877f3;}
-        .action-buttons {display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;}
-        .instructions, .library, .download-options {
-            background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); border-radius:20px; padding:25px;
-            margin-top:30px; box-shadow:0 8px 32px rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.18);
-        }
-        .instructions h2, .library h2, .download-options h2 {color:white; margin-bottom:20px; text-align:center;}
-        .cards-grid {display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 25px; margin-top:20px;}
-        .library-card {
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius:15px; overflow:hidden;
-            box-shadow:0 8px 20px rgba(0,0,0,0.1); transition:transform 0.3s ease; cursor:pointer;
-            border:1px solid rgba(255,255,255,0.1);
-        }
-        .library-card:hover {transform:translateY(-5px); border-color:rgba(255,255,255,0.3);}
-        .library-card .card-header {height:140px;}
-        .library-card .card-avatar {width:90px; height:90px;}
-        .library-card .card-body {padding:15px;}
-        .library-card .card-name {font-size:1.2rem;}
-        .library-card .card-desc {font-size:0.9rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
-        footer {text-align:center; margin-top:60px; padding:20px; color:white; font-size:1rem;}
-        .file-upload {display:flex; align-items:center; gap:10px; margin-top:10px;}
-        .file-label {
-            padding:10px 15px; background:rgba(52,152,219,0.8); color:white; border-radius:8px;
-            cursor:pointer; transition:background 0.3s; display:inline-block; backdrop-filter:blur(5px);
-        }
-        .file-label:hover {background:rgba(41,128,185,0.9);}
-        #avatar-file {display:none;}
-        .file-name {font-size:0.9rem; color:rgba(255,255,255,0.8);}
-        .social-inputs {display:grid; grid-template-columns:1fr; gap:15px; margin-top:20px;}
-        .social-input-group {display:flex; align-items:center; gap:10px;}
-        .social-input-group i {font-size:1.5rem; width:30px; color:white;}
-        .format-options {display:flex; flex-wrap:wrap; gap:20px; justify-content:center;}
-        .format-option {
-            background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); border-radius:15px; padding:20px;
-            width:200px; text-align:center; transition:transform 0.3s ease; cursor:pointer;
-            border:1px solid rgba(255,255,255,0.1); color:white;
-        }
-        .format-option:hover {transform:translateY(-5px); background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.2);}
-        .format-option i {font-size:2.5rem; margin-bottom:15px;}
-        .format-option.html i {color:#e34f26;}
-        .format-option.pdf i {color:#f40f02;}
-        .format-option.image i {color:#5b77bd;}
-        @media (max-width: 768px) {
-            .app-container {flex-direction:column;}
-            .preview-area {order:-1; margin-bottom:30px;}
-            .action-buttons {flex-direction:column; align-items:center;}
-            .btn {width:100%; margin:5px 0;}
-            .social-inputs {grid-template-columns:1fr;}
-            .format-options {flex-direction:column; align-items:center;}
-            .format-option {width:100%;}
-            .bottom-nav {width:90%; overflow-x:auto; justify-content:center;}
-            .nav-icon {width:70px; height:60px;}
-            .nav-icon span {font-size:0.7rem;}
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Cartes d'Équipe Design</h1>
-            <p class="description">Créez des cartes d'équipe élégantes avec des effets de verre et des liens sociaux</p>
-        </header>
-        <div class="main-content">
-            <!-- Onglet Création -->
-            <div id="creation" class="tab-content active">
-                <div class="app-container">
-                    <div class="customization-panel">
-                        <h2 style="color: white;">Personnalisation</h2>
-                        <div class="form-group">
-                            <label for="name">Nom et Prénom</label>
-                            <input type="text" id="name" placeholder="Ex: Sophie Martin" value="Sophie Martin">
-                        </div>
-                        <div class="form-group">
-                            <label for="role">Poste/Rôle</label>
-                            <input type="text" id="role" placeholder="Ex: Développeuse Front-end" value="Développeuse Front-end">
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea id="description" placeholder="Décrivez le membre de l'équipe...">Spécialiste en interfaces utilisateur réactives et expériences utilisateur optimisées avec 5 ans d'expérience.</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="avatar">Avatar</label>
-                            <input type="text" id="avatar" placeholder="Collez l'URL d'une image" value="https://randomuser.me/api/portraits/women/44.jpg">
-                            <div class="file-upload">
-                                <label for="avatar-file" class="file-label"><i class="fas fa-upload"></i> Charger une image</label>
-                                <input type="file" id="avatar-file" accept="image/*">
-                                <span class="file-name" id="file-name">Aucun fichier choisi</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Couleur de fond</label>
-                            <div class="color-picker">
-                                <div class="color-option active" style="background: linear-gradient(45deg, #3498db, #2c3e50);" data-color="blue"></div>
-                                <div class="color-option" style="background: linear-gradient(45deg, #e74c3c, #c0392b);" data-color="red"></div>
-                                <div class="color-option" style="background: linear-gradient(45deg, #2ecc71, #27ae60);" data-color="green"></div>
-                                <div class="color-option" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);" data-color="purple"></div>
-                                <div class="color-option" style="background: linear-gradient(45deg, #ff9a9e, #fad0c4);" data-color="pink"></div>
-                                <div class="color-option" style="background: linear-gradient(45deg, #a1c4fd, #c2e9fb);" data-color="lightblue"></div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="template">Modèle de Carte</label>
-                            <select id="template">
-                                <option value="default">Défaut</option>
-                                <option value="modern">Moderne</option>
-                                <option value="minimal">Minimaliste</option>
-                                <option value="corporate">Corporate</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Réseaux Sociaux</label>
-                            <div class="social-inputs">
-                                <div class="social-input-group">
-                                    <i class="fab fa-whatsapp whatsapp"></i>
-                                    <input type="text" id="whatsapp-link" placeholder="Numéro WhatsApp (ex: 33612345678)" value="">
-                                </div>
-                                <div class="social-input-group">
-                                    <i class="fas fa-envelope email"></i>
-                                    <input type="text" id="email-link" placeholder="Adresse email (ex: contact@example.com)" value="">
-                                </div>
-                                <div class="social-input-group">
-                                    <i class="fab fa-youtube youtube"></i>
-                                    <input type="text" id="youtube-link" placeholder="Nom de la chaîne YouTube" value="">
-                                </div>
-                                <div class="social-input-group">
-                                    <i class="fab fa-facebook facebook"></i>
-                                    <input type="text" id="facebook-link" placeholder="Nom d'utilisateur Facebook" value="">
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn" onclick="applyCustomization()"><i class="fas fa-sync-alt"></i> Appliquer les modifications</button>
-                        <button class="btn btn-library" onclick="saveToLibrary()"><i class="fas fa-save"></i> Sauvegarder dans la bibliothèque</button>
-                    </div>
-                    <div class="preview-area">
-                        <div class="card" id="previewCard">
-                            <div class="card-header">
-                                <div class="card-bg" id="cardBg" style="background: linear-gradient(45deg, #3498db, #2c3e50);">
-                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sophie Martin" class="card-avatar" id="previewAvatar">
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h2 class="card-name" id="previewName">Sophie Martin</h2>
-                                <p class="card-role" id="previewRole">Développeuse Front-end</p>
-                                <p class="card-desc" id="previewDesc">Spécialiste en interfaces utilisateur réactives et expériences utilisateur optimisées avec 5 ans d'expérience.</p>
-                                <div class="card-social">
-                                    <a href="#" class="social-icon whatsapp" id="preview-whatsapp"><i class="fab fa-whatsapp"></i></a>
-                                    <a href="#" class="social-icon email" id="preview-email"><i class="far fa-envelope"></i></a>
-                                    <a href="#" class="social-icon youtube" id="preview-youtube"><i class="fab fa-youtube"></i></a>
-                                    <a href="#" class="social-icon facebook" id="preview-facebook"><i class="fab fa-facebook"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn btn-download" onclick="downloadHTML()"><i class="fas fa-download"></i> Télécharger la carte</button>
-                            <button class="btn btn-download" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Télécharger en PDF</button>
-                            <button class="btn btn-download" onclick="downloadImage()"><i class="fas fa-image"></i> Télécharger en image + QR</button>
-                            <button class="btn btn-library" onclick="saveToLibrary()"><i class="fas fa-save"></i> Sauvegarder dans la bibliothèque</button>
-                        </div>
-                        <div id="qrcode-container" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Onglet Bibliothèque -->
-            <div id="library" class="tab-content">
-                <div class="library">
-                    <h2>Bibliothèque de Cartes</h2>
-                    <p style="text-align: center; margin-bottom: 20px; color: rgba(255,255,255,0.8);">Retrouvez ici toutes vos cartes sauvegardées</p>
-                    <div class="cards-grid" id="cardsLibrary"></div>
-                </div>
-            </div>
-            <!-- Onglet Téléchargement -->
-            <div id="download" class="tab-content">
-                <div class="download-options">
-                    <h2>Options de Téléchargement</h2>
-                    <p style="text-align: center; margin-bottom: 30px; color: rgba(255,255,255,0.8);">
-                        Choisissez le format qui correspond le mieux à vos besoins
-                    </p>
-                    <div class="format-options">
-                        <div class="format-option html" onclick="downloadHTML()">
-                            <i class="fab fa-html5"></i>
-                            <h3>Format HTML</h3>
-                            <p>Préserve tous les liens et l'interactivité. Parfait pour l'envoi par email ou l'intégration web.</p>
-                        </div>
-                        <div class="format-option pdf" onclick="downloadPDF()">
-                            <i class="fas fa-file-pdf"></i>
-                            <h3>Format PDF</h3>
-                            <p>Idéal pour l'impression. Les liens seront cliquables dans la plupart des lecteurs PDF.</p>
-                        </div>
-                        <div class="format-option image" onclick="downloadImage()">
-                            <i class="fas fa-image"></i>
-                            <h3>Format Image + QR</h3>
-                            <p>Génère une image avec un QR code pointant vers une version web de votre carte.</p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 30px; text-align: center;">
-                        <button class="btn btn-download" onclick="downloadHTML()"><i class="fas fa-download"></i> Télécharger au format HTML</button>
-                        <button class="btn btn-download" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Télécharger en PDF</button>
-                        <button class="btn btn-download" onclick="downloadImage()"><i class="fas fa-image"></i> Télécharger en image + QR</button>
-                    </div>
-                </div>
-            </div>
-            <!-- Onglet Instructions -->
-            <div id="instructions" class="tab-content">
-                <div class="instructions">
-                    <h2>Comment personnaliser votre carte</h2>
-                    <ol>
-                        <li>Modifiez les champs de texte pour changer le nom, le poste et la description</li>
-                        <li>Collez l'URL d'une image ou chargez une image depuis votre appareil</li>
-                        <li>Choisissez une couleur de fond parmi les options proposées</li>
-                        <li>Sélectionnez un modèle de carte différent si vous le souhaitez</li>
-                        <li>Ajoutez vos liens vers WhatsApp, Email, <b>YouTube</b> et <b>Facebook</b></li>
-                        <li>Cliquez sur "Appliquer les modifications" pour mettre à jour la carte</li>
-                        <li>Utilisez "Sauvegarder dans la bibliothèque" pour l'ajouter à votre collection</li>
-                        <li>Allez dans l'onglet "Téléchargement" pour exporter votre carte</li>
-                    </ol>
-                    <h2 style="margin-top: 30px;">Formats de téléchargement</h2>
-                    <ul>
-                        <li><strong>HTML</strong>: Préserve tous les liens actifs. Parfait pour partager par email ou intégrer à un site web.</li>
-                        <li><strong>PDF</strong>: Idéal pour imprimer ou partager, liens cliquables.</li>
-                        <li><strong>Image + QR Code</strong>: Génère une image avec un QR code qui redirige vers une version web de votre carte.</li>
-                    </ul>
-                    <h2 style="margin-top: 30px;">Comment utiliser les réseaux sociaux</h2>
-                    <ul>
-                        <li><strong>WhatsApp</strong>: Entrez le numéro de téléphone au format international (ex: 33612345678)</li>
-                        <li><strong>Email</strong>: Entrez l'adresse email complète (ex: contact@example.com)</li>
-                        <li><strong>YouTube</strong>: Entrez le nom de votre chaîne YouTube</li>
-                        <li><strong>Facebook</strong>: Entrez votre nom d'utilisateur Facebook</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Navigation par icônes en bas -->
-        <div class="bottom-nav">
-            <a href="#" class="nav-icon active" onclick="openTab('creation'); return false;"><i class="fas fa-plus-circle"></i><span>Création</span></a>
-            <a href="#" class="nav-icon" onclick="openTab('library'); return false;"><i class="fas fa-book"></i><span>Bibliothèque</span></a>
-            <a href="#" class="nav-icon" onclick="openTab('download'); return false;"><i class="fas fa-download"></i><span>Télécharger</span></a>
-            <a href="#" class="nav-icon" onclick="openTab('instructions'); return false;"><i class="fas fa-question-circle"></i><span>Aide</span></a>
-        </div>
-        <footer>
-            <p>© 2023 Cartes d'Équipe Design. Tous droits réservés.</p>
-        </footer>
-    </div>
-    <script>
-    // --- JS LOGIC ---
-    let savedCards = JSON.parse(localStorage.getItem('teamCards')) || [];
-    let currentTab = 'creation';
-    function openTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.nav-icon').forEach(icon => icon.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-        document.querySelector(`.nav-icon[onclick="openTab('${tabName}');"]`).classList.add('active');
-        currentTab = tabName;
-        if (tabName === 'library') updateLibrary();
-    }
-    function applyCustomization() {
-        const name = document.getElementById('name').value;
-        const role = document.getElementById('role').value;
-        const description = document.getElementById('description').value;
-        const avatarUrl = document.getElementById('avatar').value;
-        const whatsappLink = document.getElementById('whatsapp-link').value;
-        const emailLink = document.getElementById('email-link').value;
-        const youtubeLink = document.getElementById('youtube-link').value;
-        const facebookLink = document.getElementById('facebook-link').value;
-        document.getElementById('previewName').textContent = name;
-        document.getElementById('previewRole').textContent = role;
-        document.getElementById('previewDesc').textContent = description;
-        if (avatarUrl) document.getElementById('previewAvatar').src = avatarUrl;
-        document.getElementById('preview-whatsapp').href = whatsappLink ? `https://wa.me/${whatsappLink.replace(/\D/g, '')}` : '#';
-        document.getElementById('preview-email').href = emailLink ? `mailto:${emailLink}` : '#';
-        document.getElementById('preview-youtube').href = youtubeLink ? `https://www.youtube.com/${youtubeLink}` : '#';
-        document.getElementById('preview-facebook').href = facebookLink ? `https://www.facebook.com/${facebookLink}` : '#';
-        alert('Les modifications ont été appliquées avec succès !');
-    }
-    // Couleurs
-    const colorOptions = document.querySelectorAll('.color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            colorOptions.forEach(opt => opt.classList.remove('active'));
-            this.classList.add('active');
-            const bgStyle = this.getAttribute('style');
-            document.getElementById('cardBg').setAttribute('style', bgStyle);
-        });
-    });
-    // Modèle (non utilisé mais conservé)
-    document.getElementById('template').addEventListener('change', function() {
-        alert('Modèle ' + this.options[this.selectedIndex].text + ' sélectionné !');
-    });
-    // Avatar fichier
-    document.getElementById('avatar-file').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        const fileName = document.getElementById('file-name');
-        if (file) {
-            fileName.textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('previewAvatar').src = e.target.result;
-                document.getElementById('avatar').value = '';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            fileName.textContent = 'Aucun fichier choisi';
-        }
-    });
-    // Télécharger la carte en HTML
-    function downloadHTML() {
-        const cardData = {
-            name: document.getElementById('name').value,
-            role: document.getElementById('role').value,
-            description: document.getElementById('description').value,
-            avatar: document.getElementById('previewAvatar').src,
-            bgStyle: document.getElementById('cardBg').getAttribute('style'),
-            whatsapp: document.getElementById('whatsapp-link').value,
-            email: document.getElementById('email-link').value,
-            youtube: document.getElementById('youtube-link').value,
-            facebook: document.getElementById('facebook-link').value
-        };
-        const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="fr"><head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Carte de ${cardData.name}</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-        body {display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f7fa;margin:0;padding:20px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
-        .card {background:white;border-radius:15px;overflow:hidden;width:320px;box-shadow:0 15px 30px rgba(0,0,0,0.2);}
-        .card-header {position:relative;height:180px;overflow:hidden;}
-        .card-bg {width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-        .card-avatar {width:120px;height:120px;border-radius:50%;border:4px solid white;object-fit:cover;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
-        .card-body {padding:25px;text-align:center;}
-        .card-name {font-size:1.6rem;font-weight:700;margin-bottom:5px;color:#2c3e50;}
-        .card-role {color:#e74c3c;font-weight:600;margin-bottom:15px;}
-        .card-desc {color:#7f8c8d;line-height:1.5;margin-bottom:20px;}
-        .card-social {display:flex;justify-content:center;gap:15px;margin-top:15px;}
-        .social-icon {width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;transition:transform 0.3s;text-decoration:none;}
+        .social-icon {width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; transition:transform 0.3s; text-decoration:none;}
         .social-icon:hover {transform:scale(1.1);}
         .whatsapp{background-color:#25D366;}
         .email{background-color:#D44638;}
         .youtube{background-color:#FF0000;}
         .facebook{background-color:#1877f3;}
-        </style>
-        </head>
-        <body>
-        <div class="card">
-            <div class="card-header">
-                <div class="card-bg" style="${cardData.bgStyle}">
-                    <img src="${cardData.avatar}" alt="${cardData.name}" class="card-avatar">
-                </div>
-            </div>
-            <div class="card-body">
-                <h2 class="card-name">${cardData.name}</h2>
-                <p class="card-role">${cardData.role}</p>
-                <p class="card-desc">${cardData.description}</p>
-                <div class="card-social">
-                    ${cardData.whatsapp ? `<a href="https://wa.me/${cardData.whatsapp.replace(/\D/g, '')}" class="social-icon whatsapp"><i class="fab fa-whatsapp"></i></a>` : ''}
-                    ${cardData.email ? `<a href="mailto:${cardData.email}" class="social-icon email"><i class="far fa-envelope"></i></a>` : ''}
-                    ${cardData.youtube ? `<a href="https://www.youtube.com/${cardData.youtube}" class="social-icon youtube"><i class="fab fa-youtube"></i></a>` : ''}
-                    ${cardData.facebook ? `<a href="https://www.facebook.com/${cardData.facebook}" class="social-icon facebook"><i class="fab fa-facebook"></i></a>` : ''}
+        .action-buttons{display:none;}
+        .download-options {
+            background:rgba(255,255,255,0.96); border-radius:20px; padding:25px; margin-top:30px; box-shadow:0 8px 32px rgba(0,0,0,0.08); border:1px solid #eee;
+        }
+        .format-options {display:flex; flex-wrap:wrap; gap:20px; justify-content:center;}
+        .format-option {
+            background:rgba(52,152,219,0.06); border-radius:15px; padding:20px; width:190px; text-align:center; transition:transform 0.3s; cursor:pointer; border:1px solid #e5e5e5; color:#2980b9;
+        }
+        .format-option:hover {transform:translateY(-5px); background:rgba(52,152,219,0.12);}
+        .format-option i {font-size:2.5rem; margin-bottom:15px;}
+        .format-option.html i {color:#e34f26;}
+        .format-option.pdf i {color:#f40f02;}
+        .format-option.image i {color:#5b77bd;}
+        @media (max-width:768px){
+            .sidebar{position:static;width:100%;height:auto;flex-direction:row;justify-content:space-around;padding:12px 0;}
+            .main-content{margin:0;padding:20px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><i class="fas fa-id-card"></i> EquipeDesign</h2>
+        <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+        <a href="cartes_equipe_design.html" class="active"><i class="fas fa-user-plus"></i> Créer ma carte</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="privacy.html"><i class="fas fa-user-secret"></i> Confidentialité</a>
+    </div>
+    <div class="main-content">
+        <div class="main-content">
+            <div class="main-content">
+                <div class="main-content">
+                    <!-- Onglets navigation internes -->
+                    <div class="main-content" style="padding:0;">
+                        <div class="main-content" style="padding:0;">
+                            <div style="margin-bottom:30px;">
+                                <button class="btn" onclick="openTab('creation')"><i class="fas fa-edit"></i> Création</button>
+                                <button class="btn" onclick="openTab('library')"><i class="fas fa-book"></i> Bibliothèque</button>
+                                <button class="btn" onclick="openTab('download')"><i class="fas fa-download"></i> Téléchargement</button>
+                                <button class="btn" onclick="openTab('instructions')"><i class="fas fa-question-circle"></i> Aide</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-content" style="padding:0;">
+                        <!-- Création -->
+                        <div id="creation" class="tab-content active">
+                            <div class="app-container">
+                                <div class="customization-panel">
+                                    <h2 style="color:#2980b9;">Personnalisation</h2>
+                                    <div class="form-group">
+                                        <label for="name">Nom et Prénom</label>
+                                        <input type="text" id="name" placeholder="Ex: IPOTE IVAN GAEL" value="IPOTE IVAN GAEL">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="role">Poste/Rôle</label>
+                                        <input type="text" id="role" placeholder="Ex: DEVELOPPEUR DE SITE WEB" value="DEVELOPPEUR DE SITE WEB">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="description">Description</label>
+                                        <textarea id="description" placeholder="Décrivez le membre de l'équipe..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="avatar">Avatar</label>
+                                        <input type="text" id="avatar" placeholder="Collez l'URL d'une image" value="">
+                                        <div class="file-upload">
+                                            <label for="avatar-file" class="file-label"><i class="fas fa-upload"></i> Charger une image</label>
+                                            <input type="file" id="avatar-file" accept="image/*">
+                                            <span class="file-name" id="file-name">Aucun fichier choisi</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Couleur de fond</label>
+                                        <div class="color-picker">
+                                            <div class="color-option active" style="background: linear-gradient(45deg, #3498db, #2c3e50);" data-color="blue"></div>
+                                            <div class="color-option" style="background: linear-gradient(45deg, #e74c3c, #c0392b);" data-color="red"></div>
+                                            <div class="color-option" style="background: linear-gradient(45deg, #2ecc71, #27ae60);" data-color="green"></div>
+                                            <div class="color-option" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);" data-color="purple"></div>
+                                            <div class="color-option" style="background: linear-gradient(45deg, #ff9a9e, #fad0c4);" data-color="pink"></div>
+                                            <div class="color-option" style="background: linear-gradient(45deg, #a1c4fd, #c2e9fb);" data-color="lightblue"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="template">Modèle de Carte</label>
+                                        <select id="template">
+                                            <option value="default">Défaut</option>
+                                            <option value="modern">Moderne</option>
+                                            <option value="minimal">Minimaliste</option>
+                                            <option value="corporate">Corporate</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Réseaux Sociaux</label>
+                                        <div class="social-inputs">
+                                            <div class="social-input-group">
+                                                <i class="fab fa-whatsapp whatsapp"></i>
+                                                <input type="text" id="whatsapp-link" placeholder="Numéro WhatsApp (ex: 33612345678)" value="">
+                                            </div>
+                                            <div class="social-input-group">
+                                                <i class="fas fa-envelope email"></i>
+                                                <input type="text" id="email-link" placeholder="Adresse email (ex: contact@example.com)" value="">
+                                            </div>
+                                            <div class="social-input-group">
+                                                <i class="fab fa-youtube youtube"></i>
+                                                <input type="text" id="youtube-link" placeholder="Nom de la chaîne YouTube" value="">
+                                            </div>
+                                            <div class="social-input-group">
+                                                <i class="fab fa-facebook facebook"></i>
+                                                <input type="text" id="facebook-link" placeholder="Nom d'utilisateur Facebook" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn" onclick="applyCustomization()"><i class="fas fa-sync-alt"></i> Appliquer les modifications</button>
+                                    <button class="btn btn-library" onclick="saveToLibrary()"><i class="fas fa-save"></i> Sauvegarder dans la bibliothèque</button>
+                                </div>
+                                <div class="preview-area">
+                                    <div class="card" id="previewCard">
+                                        <div class="card-header">
+                                            <div class="card-bg" id="cardBg" style="background: linear-gradient(45deg, #3498db, #2c3e50);">
+                                                <img src="" alt="IPOTE IVAN GAEL" class="card-avatar" id="previewAvatar">
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h2 class="card-name" id="previewName">IPOTE IVAN GAEL</h2>
+                                            <p class="card-role" id="previewRole">DEVELOPPEUR DE SITE WEB</p>
+                                            <p class="card-desc" id="previewDesc"></p>
+                                            <div class="card-social">
+                                                <a href="#" class="social-icon whatsapp" id="preview-whatsapp"><i class="fab fa-whatsapp"></i></a>
+                                                <a href="#" class="social-icon email" id="preview-email"><i class="far fa-envelope"></i></a>
+                                                <a href="#" class="social-icon youtube" id="preview-youtube"><i class="fab fa-youtube"></i></a>
+                                                <a href="#" class="social-icon facebook" id="preview-facebook"><i class="fab fa-facebook"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="action-buttons"></div>
+                                    <div id="qrcode-container" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Onglet Bibliothèque -->
+                        <div id="library" class="tab-content">
+                            <div class="library">
+                                <h2>Bibliothèque de Cartes</h2>
+                                <p style="text-align: center; margin-bottom: 20px; color: #888;">Retrouvez ici toutes vos cartes sauvegardées</p>
+                                <div class="cards-grid" id="cardsLibrary"></div>
+                            </div>
+                        </div>
+                        <!-- Onglet Téléchargement -->
+                        <div id="download" class="tab-content">
+                            <div class="download-options">
+                                <h2>Options de Téléchargement</h2>
+                                <p style="text-align: center; margin-bottom: 30px; color: #888;">Choisissez le format qui correspond le mieux à vos besoins</p>
+                                <div class="format-options">
+                                    <div class="format-option html" onclick="downloadHTML()">
+                                        <i class="fab fa-html5"></i>
+                                        <h3>Format HTML</h3>
+                                        <p>Préserve tous les liens et l'interactivité. Parfait pour l'envoi par email ou l'intégration web.</p>
+                                    </div>
+                                    <div class="format-option pdf" onclick="downloadPDF()">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <h3>Format PDF</h3>
+                                        <p>Idéal pour l'impression. Les liens seront cliquables dans la plupart des lecteurs PDF.</p>
+                                    </div>
+                                    <div class="format-option image" onclick="downloadImage()">
+                                        <i class="fas fa-image"></i>
+                                        <h3>Format Image + QR</h3>
+                                        <p>Génère une image avec un QR code pointant vers une version web de votre carte.</p>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 30px; text-align: center;">
+                                    <button class="btn btn-download" onclick="downloadHTML()"><i class="fas fa-download"></i> Télécharger au format HTML</button>
+                                    <button class="btn btn-download" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Télécharger en PDF</button>
+                                    <button class="btn btn-download" onclick="downloadImage()"><i class="fas fa-image"></i> Télécharger en image + QR</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Onglet Instructions -->
+                        <div id="instructions" class="tab-content">
+                            <div class="instructions">
+                                <h2>Comment personnaliser votre carte</h2>
+                                <ol>
+                                    <li>Modifiez les champs de texte pour changer le nom, le poste et la description</li>
+                                    <li>Collez l'URL d'une image ou chargez une image depuis votre appareil</li>
+                                    <li>Choisissez une couleur de fond parmi les options proposées</li>
+                                    <li>Sélectionnez un modèle de carte différent si vous le souhaitez</li>
+                                    <li>Ajoutez vos liens vers WhatsApp, Email, YouTube et Facebook</li>
+                                    <li>Cliquez sur "Appliquer les modifications" pour mettre à jour la carte</li>
+                                    <li>Utilisez "Sauvegarder dans la bibliothèque" pour l'ajouter à votre collection</li>
+                                    <li>Allez dans l'onglet "Téléchargement" pour exporter votre carte</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        </body></html>`;
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `carte-${cardData.name.replace(/\s+/g, '-').toLowerCase()}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert('Votre carte a été téléchargée au format HTML! Les liens de réseaux sociaux sont actifs.');
-    }
-    // Télécharger la carte en PDF
-    function downloadPDF() {
-        const card = document.getElementById('previewCard');
-        html2pdf().set({
-            margin: 0,
-            filename: `carte-${document.getElementById('name').value.replace(/\s+/g, '-').toLowerCase()}.pdf`,
-            html2canvas: { scale: 2, backgroundColor: null },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(card).save();
-    }
-    // Télécharger la carte en image + QR Code
-    function downloadImage() {
-        const card = document.getElementById('previewCard');
-        html2canvas(card, {backgroundColor: null}).then(function(canvas) {
-            const url = window.location.href;
-            const qrcodeContainer = document.getElementById('qrcode-container');
-            qrcodeContainer.style.display = 'block';
-            qrcodeContainer.innerHTML = '';
-            const qrcode = new QRCode(qrcodeContainer, {
-                text: url, width: 80, height: 80, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
-            });
-            setTimeout(function() {
-                const qrImg = qrcodeContainer.querySelector('img');
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = canvas.width;
-                finalCanvas.height = canvas.height + 90;
-                const ctx = finalCanvas.getContext('2d');
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(0,0,finalCanvas.width,finalCanvas.height);
-                ctx.drawImage(canvas, 0, 0);
-                if (qrImg) ctx.drawImage(qrImg, (canvas.width-80)/2, canvas.height+10, 80, 80);
-                const link = document.createElement('a');
-                link.href = finalCanvas.toDataURL('image/png');
-                link.download = `carte-${document.getElementById('name').value.replace(/\s+/g, '-').toLowerCase()}.png`;
-                link.click();
-                qrcodeContainer.style.display = 'none';
-            }, 500);
-        });
-    }
-    // BIBLIOTHEQUE
-    function saveToLibrary() {
-        const cardData = {
-            name: document.getElementById('name').value,
-            role: document.getElementById('role').value,
-            description: document.getElementById('description').value,
-            avatar: document.getElementById('previewAvatar').src,
-            bgStyle: document.getElementById('cardBg').getAttribute('style'),
-            whatsapp: document.getElementById('whatsapp-link').value,
-            email: document.getElementById('email-link').value,
-            youtube: document.getElementById('youtube-link').value,
-            facebook: document.getElementById('facebook-link').value,
-            timestamp: new Date().getTime()
-        };
-        savedCards.push(cardData);
-        localStorage.setItem('teamCards', JSON.stringify(savedCards));
-        updateLibrary();
-        alert('Carte sauvegardée dans la bibliothèque!');
-        openTab('library');
-    }
-    function updateLibrary() {
-        const libraryContainer = document.getElementById('cardsLibrary');
-        libraryContainer.innerHTML = '';
-        if (savedCards.length === 0) {
-            libraryContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: rgba(255,255,255,0.8);">Aucune carte sauvegardée pour le moment</p>';
-            return;
+    </div>
+    <script>
+        // Navigation interne (onglets)
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
         }
-        savedCards.forEach((card, index) => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'library-card';
-            cardElement.innerHTML = `
+        // Le reste du JS (identique à la version précédente)
+        let savedCards = JSON.parse(localStorage.getItem('teamCards')) || [];
+        function applyCustomization() {
+            const name = document.getElementById('name').value;
+            const role = document.getElementById('role').value;
+            const description = document.getElementById('description').value;
+            const avatarUrl = document.getElementById('avatar').value;
+            const whatsappLink = document.getElementById('whatsapp-link').value;
+            const emailLink = document.getElementById('email-link').value;
+            const youtubeLink = document.getElementById('youtube-link').value;
+            const facebookLink = document.getElementById('facebook-link').value;
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewRole').textContent = role;
+            document.getElementById('previewDesc').textContent = description;
+            document.getElementById('previewAvatar').src = avatarUrl || '';
+            document.getElementById('preview-whatsapp').href = whatsappLink ? `https://wa.me/${whatsappLink.replace(/\D/g, '')}` : '#';
+            document.getElementById('preview-email').href = emailLink ? `mailto:${emailLink}` : '#';
+            document.getElementById('preview-youtube').href = youtubeLink ? `https://www.youtube.com/${youtubeLink}` : '#';
+            document.getElementById('preview-facebook').href = facebookLink ? `https://www.facebook.com/${facebookLink}` : '#';
+            // pas d'alerte ici
+        }
+        // Couleurs
+        const colorOptions = document.querySelectorAll('.color-option');
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                colorOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                const bgStyle = this.getAttribute('style');
+                document.getElementById('cardBg').setAttribute('style', bgStyle);
+            });
+        });
+        // Modèle
+        document.getElementById('template').addEventListener('change', function() {
+            // rien ici
+        });
+        // Avatar fichier
+        document.getElementById('avatar-file').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const fileName = document.getElementById('file-name');
+            if (file) {
+                fileName.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewAvatar').src = e.target.result;
+                    document.getElementById('avatar').value = '';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileName.textContent = 'Aucun fichier choisi';
+            }
+        });
+        // Télécharger la carte en HTML
+        function downloadHTML() {
+            const cardData = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                description: document.getElementById('description').value,
+                avatar: document.getElementById('previewAvatar').src,
+                bgStyle: document.getElementById('cardBg').getAttribute('style'),
+                whatsapp: document.getElementById('whatsapp-link').value,
+                email: document.getElementById('email-link').value,
+                youtube: document.getElementById('youtube-link').value,
+                facebook: document.getElementById('facebook-link').value
+            };
+            const htmlContent = `
+            <!DOCTYPE html>
+            <html lang="fr"><head>
+            <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Carte de ${cardData.name}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+            body {display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f7fa;margin:0;padding:20px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+            .card {background:white;border-radius:15px;overflow:hidden;width:320px;box-shadow:0 15px 30px rgba(0,0,0,0.2);}
+            .card-header {position:relative;height:180px;overflow:hidden;}
+            .card-bg {width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+            .card-avatar {width:120px;height:120px;border-radius:50%;border:4px solid white;object-fit:cover;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+            .card-body {padding:25px;text-align:center;}
+            .card-name {font-size:1.6rem;font-weight:700;margin-bottom:5px;color:#2c3e50;}
+            .card-role {color:#e67e22;font-weight:600;margin-bottom:15px;}
+            .card-desc {color:#7f8c8d;line-height:1.5;margin-bottom:20px;}
+            .card-social {display:flex;justify-content:center;gap:15px;margin-top:15px;}
+            .social-icon {width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;transition:transform 0.3s;text-decoration:none;}
+            .social-icon:hover {transform:scale(1.1);}
+            .whatsapp{background-color:#25D366;}
+            .email{background-color:#D44638;}
+            .youtube{background-color:#FF0000;}
+            .facebook{background-color:#1877f3;}
+            </style>
+            </head>
+            <body>
+            <div class="card">
                 <div class="card-header">
-                    <div class="card-bg" style="${card.bgStyle}">
-                        <img src="${card.avatar}" alt="${card.name}" class="card-avatar">
+                    <div class="card-bg" style="${cardData.bgStyle}">
+                        <img src="${cardData.avatar}" alt="${cardData.name}" class="card-avatar">
                     </div>
                 </div>
                 <div class="card-body">
-                    <h2 class="card-name">${card.name}</h2>
-                    <p class="card-role">${card.role}</p>
-                    <p class="card-desc">${card.description}</p>
+                    <h2 class="card-name">${cardData.name}</h2>
+                    <p class="card-role">${cardData.role}</p>
+                    <p class="card-desc">${cardData.description}</p>
                     <div class="card-social">
-                        ${card.whatsapp ? '<a href="https://wa.me/' + card.whatsapp.replace(/\D/g, '') + '" class="social-icon whatsapp"><i class="fab fa-whatsapp"></i></a>' : ''}
-                        ${card.email ? '<a href="mailto:' + card.email + '" class="social-icon email"><i class="far fa-envelope"></i></a>' : ''}
-                        ${card.youtube ? '<a href="https://www.youtube.com/' + card.youtube + '" class="social-icon youtube"><i class="fab fa-youtube"></i></a>' : ''}
-                        ${card.facebook ? '<a href="https://www.facebook.com/' + card.facebook + '" class="social-icon facebook"><i class="fab fa-facebook"></i></a>' : ''}
+                        ${cardData.whatsapp ? `<a href="https://wa.me/${cardData.whatsapp.replace(/\D/g, '')}" class="social-icon whatsapp"><i class="fab fa-whatsapp"></i></a>` : ''}
+                        ${cardData.email ? `<a href="mailto:${cardData.email}" class="social-icon email"><i class="far fa-envelope"></i></a>` : ''}
+                        ${cardData.youtube ? `<a href="https://www.youtube.com/${cardData.youtube}" class="social-icon youtube"><i class="fab fa-youtube"></i></a>` : ''}
+                        ${cardData.facebook ? `<a href="https://www.facebook.com/${cardData.facebook}" class="social-icon facebook"><i class="fab fa-facebook"></i></a>` : ''}
                     </div>
                 </div>
-            `;
-            cardElement.addEventListener('click', () => {
-                if (confirm('Voulez-vous charger cette carte dans l\'éditeur?')) {
-                    loadCardToEditor(index);
-                    openTab('creation');
+            </div>
+            </body></html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `carte-${cardData.name.replace(/\s+/g, '-').toLowerCase()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        // Télécharger la carte en PDF
+        function downloadPDF() {
+            const card = document.getElementById('previewCard');
+            html2pdf().set({
+                margin: 0,
+                filename: `carte-${document.getElementById('name').value.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+                html2canvas: { scale: 2, backgroundColor: null },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(card).save();
+        }
+        // Télécharger la carte en image + QR Code
+        function downloadImage() {
+            const card = document.getElementById('previewCard');
+            html2canvas(card, {backgroundColor: null}).then(function(canvas) {
+                const url = window.location.href;
+                const qrcodeContainer = document.getElementById('qrcode-container');
+                qrcodeContainer.style.display = 'block';
+                qrcodeContainer.innerHTML = '';
+                const qrcode = new QRCode(qrcodeContainer, {
+                    text: url, width: 80, height: 80, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+                });
+                setTimeout(function() {
+                    const qrImg = qrcodeContainer.querySelector('img');
+                    const finalCanvas = document.createElement('canvas');
+                    finalCanvas.width = canvas.width;
+                    finalCanvas.height = canvas.height + 90;
+                    const ctx = finalCanvas.getContext('2d');
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(0,0,finalCanvas.width,finalCanvas.height);
+                    ctx.drawImage(canvas, 0, 0);
+                    if (qrImg) ctx.drawImage(qrImg, (canvas.width-80)/2, canvas.height+10, 80, 80);
+                    const link = document.createElement('a');
+                    link.href = finalCanvas.toDataURL('image/png');
+                    link.download = `carte-${document.getElementById('name').value.replace(/\s+/g, '-').toLowerCase()}.png`;
+                    link.click();
+                    qrcodeContainer.style.display = 'none';
+                }, 500);
+            });
+        }
+        // BIBLIOTHEQUE
+        function saveToLibrary() {
+            const cardData = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                description: document.getElementById('description').value,
+                avatar: document.getElementById('previewAvatar').src,
+                bgStyle: document.getElementById('cardBg').getAttribute('style'),
+                whatsapp: document.getElementById('whatsapp-link').value,
+                email: document.getElementById('email-link').value,
+                youtube: document.getElementById('youtube-link').value,
+                facebook: document.getElementById('facebook-link').value,
+                timestamp: new Date().getTime()
+            };
+            savedCards.push(cardData);
+            localStorage.setItem('teamCards', JSON.stringify(savedCards));
+            updateLibrary();
+            openTab('library');
+        }
+        function updateLibrary() {
+            const libraryContainer = document.getElementById('cardsLibrary');
+            libraryContainer.innerHTML = '';
+            if (savedCards.length === 0) {
+                libraryContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #888;">Aucune carte sauvegardée pour le moment</p>';
+                return;
+            }
+            savedCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'library-card';
+                cardElement.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-bg" style="${card.bgStyle}">
+                            <img src="${card.avatar}" alt="${card.name}" class="card-avatar">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="card-name">${card.name}</h2>
+                        <p class="card-role">${card.role}</p>
+                        <p class="card-desc">${card.description}</p>
+                        <div class="card-social">
+                            ${card.whatsapp ? '<a href="https://wa.me/' + card.whatsapp.replace(/\D/g, '') + '" class="social-icon whatsapp"><i class="fab fa-whatsapp"></i></a>' : ''}
+                            ${card.email ? '<a href="mailto:' + card.email + '" class="social-icon email"><i class="far fa-envelope"></i></a>' : ''}
+                            ${card.youtube ? '<a href="https://www.youtube.com/' + card.youtube + '" class="social-icon youtube"><i class="fab fa-youtube"></i></a>' : ''}
+                            ${card.facebook ? '<a href="https://www.facebook.com/' + card.facebook + '" class="social-icon facebook"><i class="fab fa-facebook"></i></a>' : ''}
+                        </div>
+                    </div>
+                `;
+                cardElement.addEventListener('click', () => {
+                    if (confirm('Voulez-vous charger cette carte dans l\'éditeur?')) {
+                        loadCardToEditor(index);
+                        openTab('creation');
+                    }
+                });
+                libraryContainer.appendChild(cardElement);
+            });
+        }
+        function loadCardToEditor(index) {
+            const card = savedCards[index];
+            document.getElementById('name').value = card.name;
+            document.getElementById('role').value = card.role;
+            document.getElementById('description').value = card.description;
+            document.getElementById('avatar').value = '';
+            document.getElementById('previewAvatar').src = card.avatar;
+            document.getElementById('cardBg').setAttribute('style', card.bgStyle);
+            document.getElementById('whatsapp-link').value = card.whatsapp || '';
+            document.getElementById('email-link').value = card.email || '';
+            document.getElementById('youtube-link').value = card.youtube || '';
+            document.getElementById('facebook-link').value = card.facebook || '';
+            applyCustomization();
+            colorOptions.forEach(option => {
+                option.classList.remove('active');
+                if (option.getAttribute('style') === card.bgStyle) {
+                    option.classList.add('active');
                 }
             });
-            libraryContainer.appendChild(cardElement);
-        });
-    }
-    function loadCardToEditor(index) {
-        const card = savedCards[index];
-        document.getElementById('name').value = card.name;
-        document.getElementById('role').value = card.role;
-        document.getElementById('description').value = card.description;
-        document.getElementById('avatar').value = '';
-        document.getElementById('previewAvatar').src = card.avatar;
-        document.getElementById('cardBg').setAttribute('style', card.bgStyle);
-        document.getElementById('whatsapp-link').value = card.whatsapp || '';
-        document.getElementById('email-link').value = card.email || '';
-        document.getElementById('youtube-link').value = card.youtube || '';
-        document.getElementById('facebook-link').value = card.facebook || '';
-        applyCustomization();
-        colorOptions.forEach(option => {
-            option.classList.remove('active');
-            if (option.getAttribute('style') === card.bgStyle) {
-                option.classList.add('active');
-            }
-        });
-    }
-    document.addEventListener('DOMContentLoaded', function() { updateLibrary(); });
+        }
+        document.addEventListener('DOMContentLoaded', function() { updateLibrary(); });
     </script>
 </body>
 </html>
